@@ -1,37 +1,108 @@
-import { type User, type InsertUser } from "@shared/schema";
+import { type Player, type InsertPlayer, type PlayerProgress, type Difficulty } from "@shared/schema";
 import { randomUUID } from "crypto";
 
-// modify the interface with any CRUD methods
-// you might need
-
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getPlayer(id: string): Promise<Player | undefined>;
+  getPlayerByNickname(nickname: string): Promise<Player | undefined>;
+  createPlayer(player: InsertPlayer): Promise<Player>;
+  updatePlayerProgress(playerId: string, progress: PlayerProgress): Promise<Player | undefined>;
+  updatePlayerScore(playerId: string, scoreToAdd: number): Promise<Player | undefined>;
+  addAchievement(playerId: string, achievementId: string): Promise<Player | undefined>;
+  getAllPlayers(): Promise<Player[]>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+  private players: Map<string, Player>;
 
   constructor() {
-    this.users = new Map();
+    this.players = new Map();
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getPlayer(id: string): Promise<Player | undefined> {
+    return this.players.get(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
+  async getPlayerByNickname(nickname: string): Promise<Player | undefined> {
+    return Array.from(this.players.values()).find(
+      (player) => player.nickname.toLowerCase() === nickname.toLowerCase(),
     );
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createPlayer(insertPlayer: InsertPlayer): Promise<Player> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    const player: Player = { 
+      id, 
+      nickname: insertPlayer.nickname,
+      totalScore: 0,
+      levelsCompleted: 0,
+      achievements: [],
+      progress: {},
+    };
+    this.players.set(id, player);
+    return player;
+  }
+
+  async updatePlayerProgress(playerId: string, progress: PlayerProgress): Promise<Player | undefined> {
+    const player = this.players.get(playerId);
+    if (!player) return undefined;
+
+    const key = `${progress.odevelId}-${progress.difficulty}`;
+    const existingProgress = player.progress[key];
+    
+    const updatedPlayer: Player = {
+      ...player,
+      progress: {
+        ...player.progress,
+        [key]: {
+          ...progress,
+          score: existingProgress ? Math.max(existingProgress.score, progress.score) : progress.score,
+        },
+      },
+    };
+
+    const completedLevels = new Set(
+      Object.values(updatedPlayer.progress)
+        .filter(p => p.completed)
+        .map(p => p.odevelId)
+    );
+    updatedPlayer.levelsCompleted = completedLevels.size;
+
+    this.players.set(playerId, updatedPlayer);
+    return updatedPlayer;
+  }
+
+  async updatePlayerScore(playerId: string, scoreToAdd: number): Promise<Player | undefined> {
+    const player = this.players.get(playerId);
+    if (!player) return undefined;
+
+    const updatedPlayer: Player = {
+      ...player,
+      totalScore: player.totalScore + scoreToAdd,
+    };
+
+    this.players.set(playerId, updatedPlayer);
+    return updatedPlayer;
+  }
+
+  async addAchievement(playerId: string, achievementId: string): Promise<Player | undefined> {
+    const player = this.players.get(playerId);
+    if (!player) return undefined;
+
+    if (player.achievements.includes(achievementId)) {
+      return player;
+    }
+
+    const updatedPlayer: Player = {
+      ...player,
+      achievements: [...player.achievements, achievementId],
+    };
+
+    this.players.set(playerId, updatedPlayer);
+    return updatedPlayer;
+  }
+
+  async getAllPlayers(): Promise<Player[]> {
+    return Array.from(this.players.values());
   }
 }
 
