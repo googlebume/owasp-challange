@@ -133,8 +133,8 @@ export function useGameState() {
       const isNewCompletion = !existingProgress?.completed;
       
       const newProgress: PlayerProgress = {
-        odexId: progressKey,
-        odevelId: gameState.currentLevel,
+        progressId: progressKey,
+        levelId: gameState.currentLevel,
         difficulty: gameState.difficulty,
         completed: true,
         score: Math.max(score, existingProgress?.score || 0),
@@ -146,7 +146,7 @@ export function useGameState() {
       const completedLevels = new Set(
         Object.values(player.progress)
           .filter(p => p.completed)
-          .map(p => p.odevelId)
+          .map(p => p.levelId)
       );
       if (isNewCompletion) {
         completedLevels.add(gameState.currentLevel);
@@ -206,7 +206,7 @@ export function useGameState() {
       return player.progress[key]?.completed || false;
     }
     return Object.values(player.progress).some(
-      p => p.odevelId === levelId && p.completed
+      p => p.levelId === levelId && p.completed
     );
   }, [player]);
 

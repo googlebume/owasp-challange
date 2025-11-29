@@ -46,7 +46,7 @@ export class MemStorage implements IStorage {
     const player = this.players.get(playerId);
     if (!player) return undefined;
 
-    const key = `${progress.odevelId}-${progress.difficulty}`;
+    const key = `${progress.levelId}-${progress.difficulty}`;
     const existingProgress = player.progress[key];
     
     const updatedPlayer: Player = {
@@ -63,7 +63,7 @@ export class MemStorage implements IStorage {
     const completedLevels = new Set(
       Object.values(updatedPlayer.progress)
         .filter(p => p.completed)
-        .map(p => p.odevelId)
+        .map(p => p.levelId)
     );
     updatedPlayer.levelsCompleted = completedLevels.size;
 

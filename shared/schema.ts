@@ -32,8 +32,8 @@ export interface Level {
 }
 
 export interface PlayerProgress {
-  odexId: string
-  odevelId: number;
+  progressId: string;
+  levelId: number;
   difficulty: Difficulty;
   completed: boolean;
   score: number;

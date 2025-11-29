@@ -20,18 +20,18 @@ export default function Home() {
 
   const completedLevelIds = Object.values(player.progress)
     .filter(p => p.completed)
-    .map(p => p.odevelId);
+    .map(p => p.levelId);
   
   const uniqueCompletedLevels = [...new Set(completedLevelIds)];
   
   const completedDifficultiesMap: Record<number, Difficulty[]> = {};
   Object.values(player.progress).forEach(p => {
     if (p.completed) {
-      if (!completedDifficultiesMap[p.odevelId]) {
-        completedDifficultiesMap[p.odevelId] = [];
+      if (!completedDifficultiesMap[p.levelId]) {
+        completedDifficultiesMap[p.levelId] = [];
       }
-      if (!completedDifficultiesMap[p.odevelId].includes(p.difficulty)) {
-        completedDifficultiesMap[p.odevelId].push(p.difficulty);
+      if (!completedDifficultiesMap[p.levelId].includes(p.difficulty)) {
+        completedDifficultiesMap[p.levelId].push(p.difficulty);
       }
     }
   });
