@@ -1,9 +1,11 @@
-import { X, Shield, Zap, Lock, ExternalLink, ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { X, Shield, Zap, Lock, ExternalLink, ArrowRight, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScoreDisplay } from "./ScoreDisplay";
+import { CertificateModal } from "./CertificateModal";
 import { type Level, type Difficulty } from "@shared/schema";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +18,8 @@ interface EducationalModalProps {
   onNextLevel: () => void;
   onBackToLevels: () => void;
   isLastLevel: boolean;
+  playerName?: string;
+  totalScore?: number;
 }
 
 export function EducationalModal({
@@ -26,11 +30,27 @@ export function EducationalModal({
   hintsUsed,
   onNextLevel,
   onBackToLevels,
-  isLastLevel
+  isLastLevel,
+  playerName,
+  totalScore
 }: EducationalModalProps) {
+  const [showCertificate, setShowCertificate] = useState(false);
   const multiplier = difficulty === "easy" ? 1 : difficulty === "medium" ? 2 : 3;
   const timeBonus = Math.max(0, 100 - Math.floor(timeSpent / 10));
   const hintPenalty = hintsUsed * 25;
+
+  if (showCertificate && playerName && totalScore !== undefined) {
+    return (
+      <CertificateModal
+        playerName={playerName}
+        totalScore={totalScore + score}
+        onClose={() => {
+          setShowCertificate(false);
+          onBackToLevels();
+        }}
+      />
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in duration-300">
@@ -159,13 +179,14 @@ export function EducationalModal({
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           )}
-          {isLastLevel && (
+          {isLastLevel && playerName && (
             <Button
-              onClick={onBackToLevels}
+              onClick={() => setShowCertificate(true)}
               className="flex-1 font-mono bg-gradient-to-r from-primary to-accent"
-              data-testid="button-complete-game"
+              data-testid="button-get-certificate"
             >
-              Завершити гру!
+              <Award className="h-4 w-4 mr-2" />
+              Отримати сертифікат!
             </Button>
           )}
         </div>

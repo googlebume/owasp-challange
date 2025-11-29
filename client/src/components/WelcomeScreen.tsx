@@ -15,15 +15,20 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (nickname.trim().length < 2) {
-      setError("Нікнейм повинен містити мінімум 2 символи");
+    const trimmedNickname = nickname.trim();
+    if (trimmedNickname.length < 3) {
+      setError("Нікнейм повинен містити мінімум 3 символи");
       return;
     }
-    if (nickname.trim().length > 20) {
+    if (trimmedNickname.length > 20) {
       setError("Нікнейм не може бути довшим за 20 символів");
       return;
     }
-    onStart(nickname.trim());
+    if (/^\d/.test(trimmedNickname)) {
+      setError("Нікнейм не може починатися з цифри");
+      return;
+    }
+    onStart(trimmedNickname);
   };
 
   return (
@@ -55,7 +60,7 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
           <div className="flex flex-wrap justify-center gap-2">
             <Badge variant="outline" className="font-mono">
               <Terminal className="h-3 w-3 mr-1" />
-              10 рівнів
+              12 рівнів
             </Badge>
             <Badge variant="outline" className="font-mono">
               <Shield className="h-3 w-3 mr-1" />

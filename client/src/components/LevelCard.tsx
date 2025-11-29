@@ -1,6 +1,6 @@
 import { 
-  Shield, Key, Package, Database, Settings, Clock, 
-  Lock, Eye, FileText, AlertTriangle, CheckCircle2, Star
+  ShieldAlert, KeyRound, Boxes, Database, Wrench, RefreshCcw, 
+  LockKeyhole, ScanEye, ScrollText, Bug, CheckCircle2, Star, Bot, Workflow, Lock
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,17 +10,19 @@ import { type Level, type Difficulty } from "@shared/schema";
 import { DifficultySelector } from "./DifficultySelector";
 import { useState } from "react";
 
-const iconMap: Record<string, typeof Shield> = {
-  "Shield": Shield,
-  "Key": Key,
-  "Package": Package,
+const iconMap: Record<string, typeof ShieldAlert> = {
+  "ShieldAlert": ShieldAlert,
+  "KeyRound": KeyRound,
+  "Boxes": Boxes,
   "Database": Database,
-  "Settings": Settings,
-  "Clock": Clock,
-  "Lock": Lock,
-  "Eye": Eye,
-  "FileText": FileText,
-  "AlertTriangle": AlertTriangle,
+  "Wrench": Wrench,
+  "RefreshCcw": RefreshCcw,
+  "LockKeyhole": LockKeyhole,
+  "ScanEye": ScanEye,
+  "ScrollText": ScrollText,
+  "Bug": Bug,
+  "Bot": Bot,
+  "Workflow": Workflow,
 };
 
 interface LevelCardProps {
@@ -39,16 +41,27 @@ export function LevelCard({
   onPlay 
 }: LevelCardProps) {
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>("easy");
-  const Icon = iconMap[level.vulnerability === "BAC" ? "Shield" : 
-               level.vulnerability === "Crypto" ? "Key" :
-               level.vulnerability === "Supply Chain" ? "Package" :
-               level.vulnerability === "SQL Injection" ? "Database" :
-               level.vulnerability === "Misconfiguration" ? "Settings" :
-               level.vulnerability === "Outdated" ? "Clock" :
-               level.vulnerability === "Auth Bypass" ? "Lock" :
-               level.vulnerability === "Secrets Exposure" ? "Eye" :
-               level.vulnerability === "Log Analysis" ? "FileText" :
-               "AlertTriangle"] || AlertTriangle;
+  
+  const getIconForLevel = () => {
+    if (level.isAIGenerated) {
+      return level.requiredInputs === 2 ? Workflow : Bot;
+    }
+    switch (level.vulnerability) {
+      case "BAC": return ShieldAlert;
+      case "Crypto": return KeyRound;
+      case "Supply Chain": return Boxes;
+      case "SQL Injection": return Database;
+      case "Misconfiguration": return Wrench;
+      case "Outdated": return RefreshCcw;
+      case "Auth Bypass": return LockKeyhole;
+      case "Secrets Exposure": return ScanEye;
+      case "Log Analysis": return ScrollText;
+      case "Error Handling": return Bug;
+      default: return Bug;
+    }
+  };
+  
+  const Icon = getIconForLevel();
 
   const isCompleted = completedDifficulties.length > 0;
   const isFullyCompleted = completedDifficulties.length === 3;
@@ -108,7 +121,7 @@ export function LevelCard({
       </CardHeader>
 
       <CardContent className="space-y-3">
-        <p className="text-xs text-muted-foreground line-clamp-2">
+        <p className="text-xs text-muted-foreground line-clamp-3">
           {level.descriptionUa}
         </p>
 

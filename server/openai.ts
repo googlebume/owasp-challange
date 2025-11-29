@@ -133,7 +133,226 @@ function getDefaultHint(level: typeof levels[0], hintNumber: number): string {
       2: "Що станеться, якщо передати неочікуване значення?",
       3: "Спробуйте передати 'undefined' - це може викликати помилку.",
     },
+    11: {
+      1: "Уважно прочитайте згенерований ШІ сценарій.",
+      2: "Визначте тип вразливості на основі наданого коду або опису.",
+      3: "Введіть команду або значення, яке експлуатує виявлену вразливість.",
+    },
+    12: {
+      1: "Цей рівень потребує двох кроків. Почніть з першого.",
+      2: "Після першого успішного кроку, вас чекає наступний виклик.",
+      3: "Комбінуйте ваші знання з різних типів вразливостей.",
+    },
   };
 
   return defaultHints[level.id]?.[hintNumber] || "Подумайте про основи вразливості та спробуйте ще раз.";
+}
+
+export interface AIChallenge {
+  scenario: string;
+  expectedAnswer: string;
+  stepNumber?: number;
+  totalSteps?: number;
+}
+
+export async function generateAIChallenge(difficulty: Difficulty, stepNumber: number = 1, totalSteps: number = 1): Promise<AIChallenge> {
+  const difficultyContext = {
+    easy: "Generate a simple, educational security challenge suitable for beginners.",
+    medium: "Generate a moderate security challenge that requires some knowledge.",
+    hard: "Generate a complex security challenge that requires advanced knowledge.",
+  };
+
+  const vulnerabilityTypes = [
+    "SQL Injection",
+    "Cross-Site Scripting (XSS)",
+    "Command Injection",
+    "Path Traversal",
+    "IDOR (Insecure Direct Object Reference)",
+    "Authentication Bypass",
+    "Sensitive Data Exposure",
+    "Broken Access Control"
+  ];
+
+  const randomVuln = vulnerabilityTypes[Math.floor(Math.random() * vulnerabilityTypes.length)];
+
+  const prompt = `You are a cybersecurity training assistant creating an educational security challenge.
+
+Difficulty: ${difficulty}
+Challenge Type: ${randomVuln}
+Step: ${stepNumber} of ${totalSteps}
+
+${difficultyContext[difficulty]}
+
+Create a security challenge scenario in Ukrainian language that:
+1. Shows a realistic code snippet or system description with a vulnerability
+2. Has a clear, specific answer (a command, payload, or value)
+3. Is educational and teaches about ${randomVuln}
+4. The answer should be concise (1-50 characters)
+
+Respond in JSON format:
+{
+  "scenario": "The full scenario description with code in Ukrainian",
+  "expectedAnswer": "The exact answer the player needs to enter"
+}
+
+IMPORTANT: 
+- The scenario should be detailed (100-300 words)
+- Include actual code snippets where appropriate
+- The expectedAnswer must be a specific, verifiable string
+- Make sure the challenge is solvable based on the information provided`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-5",
+      messages: [
+        {
+          role: "system",
+          content: "You are a cybersecurity education assistant. Create challenges in Ukrainian. Respond only with valid JSON."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      max_completion_tokens: 1000,
+      response_format: { type: "json_object" }
+    });
+
+    const content = response.choices[0].message.content;
+    if (!content) {
+      return getDefaultAIChallenge(difficulty, stepNumber);
+    }
+
+    const parsed = JSON.parse(content);
+    return {
+      scenario: parsed.scenario,
+      expectedAnswer: parsed.expectedAnswer,
+      stepNumber,
+      totalSteps
+    };
+  } catch (error) {
+    console.error("OpenAI AI Challenge generation error:", error);
+    return getDefaultAIChallenge(difficulty, stepNumber);
+  }
+}
+
+function getDefaultAIChallenge(difficulty: Difficulty, stepNumber: number): AIChallenge {
+  const challenges: AIChallenge[] = [
+    {
+      scenario: `╔══════════════════════════════════════╗
+║      СИСТЕМА АУТЕНТИФІКАЦІЇ          ║
+╚══════════════════════════════════════╝
+
+Ви знайшли форму входу на сайті. Проаналізуйте наступний код:
+
+\`\`\`php
+$query = "SELECT * FROM users WHERE 
+  username = '" . $_POST['user'] . "' 
+  AND password = '" . $_POST['pass'] . "'";
+\`\`\`
+
+Введіть payload для обходу аутентифікації:`,
+      expectedAnswer: "' OR '1'='1",
+      stepNumber
+    },
+    {
+      scenario: `╔══════════════════════════════════════╗
+║      ФАЙЛОВИЙ МЕНЕДЖЕР               ║
+╚══════════════════════════════════════╝
+
+Веб-додаток дозволяє завантажувати файли за шляхом:
+/api/files?path=/uploads/documents/
+
+Код обробника:
+\`\`\`javascript
+app.get('/api/files', (req, res) => {
+  const filePath = '/var/www/uploads/' + req.query.path;
+  res.sendFile(filePath);
+});
+\`\`\`
+
+Отримайте доступ до /etc/passwd:`,
+      expectedAnswer: "../../../etc/passwd",
+      stepNumber
+    },
+    {
+      scenario: `╔══════════════════════════════════════╗
+║      ПАНЕЛЬ АДМІНІСТРАТОРА           ║
+╚══════════════════════════════════════╝
+
+API endpoint повертає дані користувача:
+GET /api/users/profile?id=123
+
+Ви авторизовані як користувач з id=123.
+Адміністратор має id=1.
+
+Отримайте дані адміністратора, змінивши запит:`,
+      expectedAnswer: "id=1",
+      stepNumber
+    }
+  ];
+
+  return challenges[Math.floor(Math.random() * challenges.length)];
+}
+
+export async function verifyAIAnswer(challenge: AIChallenge, playerAnswer: string): Promise<{isCorrect: boolean; feedback: string}> {
+  const prompt = `You are a cybersecurity training assistant verifying a player's answer.
+
+Challenge scenario:
+${challenge.scenario}
+
+Expected answer: "${challenge.expectedAnswer}"
+Player's answer: "${playerAnswer}"
+
+Determine if the player's answer is correct or equivalent to the expected answer.
+Consider variations that achieve the same goal (e.g., different SQL injection payloads that work).
+
+Respond in JSON format:
+{
+  "isCorrect": true/false,
+  "feedback": "Brief feedback in Ukrainian (1-2 sentences)"
+}`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-5",
+      messages: [
+        {
+          role: "system",
+          content: "You are a cybersecurity education assistant. Verify answers and provide feedback in Ukrainian. Respond only with valid JSON."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      max_completion_tokens: 200,
+      response_format: { type: "json_object" }
+    });
+
+    const content = response.choices[0].message.content;
+    if (!content) {
+      return simpleVerify(challenge.expectedAnswer, playerAnswer);
+    }
+
+    const parsed = JSON.parse(content);
+    return {
+      isCorrect: parsed.isCorrect,
+      feedback: parsed.feedback
+    };
+  } catch (error) {
+    console.error("OpenAI verification error:", error);
+    return simpleVerify(challenge.expectedAnswer, playerAnswer);
+  }
+}
+
+function simpleVerify(expected: string, answer: string): {isCorrect: boolean; feedback: string} {
+  const isCorrect = answer.toLowerCase().trim() === expected.toLowerCase().trim() ||
+                    answer.toLowerCase().includes(expected.toLowerCase());
+  return {
+    isCorrect,
+    feedback: isCorrect 
+      ? "Правильно! Ви успішно ідентифікували вразливість." 
+      : "Неправильно. Спробуйте ще раз, уважно проаналізуйте сценарій."
+  };
 }

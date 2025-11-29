@@ -110,6 +110,70 @@ export function useGameState() {
     });
   }, []);
 
+  const updatePlayerProgress = useCallback((score: number) => {
+    const level = getLevel(gameState.currentLevel || 0);
+    if (!level || !player || !gameState.currentLevel) return;
+
+    const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+    
+    const progressKey = `${gameState.currentLevel}-${gameState.difficulty}`;
+    const existingProgress = player.progress[progressKey];
+    const isNewCompletion = !existingProgress?.completed;
+    
+    const newProgress: PlayerProgress = {
+      progressId: progressKey,
+      levelId: gameState.currentLevel,
+      difficulty: gameState.difficulty,
+      completed: true,
+      score: Math.max(score, existingProgress?.score || 0),
+      timeSpent,
+      hintsUsed: gameState.hintsRevealed,
+      completedAt: new Date().toISOString(),
+    };
+
+    const completedLevels = new Set(
+      Object.values(player.progress)
+        .filter(p => p.completed)
+        .map(p => p.levelId)
+    );
+    if (isNewCompletion) {
+      completedLevels.add(gameState.currentLevel);
+    }
+
+    const newAchievements = [...player.achievements];
+    
+    if (completedLevels.size >= 1 && !newAchievements.includes("first-blood")) {
+      newAchievements.push("first-blood");
+    }
+    if (completedLevels.size >= 5 && !newAchievements.includes("hacker-rookie")) {
+      newAchievements.push("hacker-rookie");
+    }
+    if (completedLevels.size >= 12 && !newAchievements.includes("cyber-warrior")) {
+      newAchievements.push("cyber-warrior");
+    }
+    if (timeSpent < 30 && !newAchievements.includes("speed-demon")) {
+      newAchievements.push("speed-demon");
+    }
+    if (gameState.hintsRevealed === 0 && !newAchievements.includes("no-hints")) {
+      newAchievements.push("no-hints");
+    }
+
+    setPlayer(prev => {
+      if (!prev) return prev;
+      const scoreDiff = isNewCompletion ? score : Math.max(0, score - (existingProgress?.score || 0));
+      return {
+        ...prev,
+        totalScore: prev.totalScore + scoreDiff,
+        levelsCompleted: completedLevels.size,
+        achievements: newAchievements,
+        progress: {
+          ...prev.progress,
+          [progressKey]: newProgress,
+        },
+      };
+    });
+  }, [gameState, player, startTime]);
+
   const attemptExploit = useCallback((input: string): boolean => {
     const level = getLevel(gameState.currentLevel || 0);
     if (!level) return false;
@@ -127,67 +191,22 @@ export function useGameState() {
     if (isCorrect && player && gameState.currentLevel) {
       const timeSpent = Math.floor((Date.now() - startTime) / 1000);
       const score = calculateScore(level.basePoints, gameState.difficulty, timeSpent, gameState.hintsRevealed);
-      
-      const progressKey = `${gameState.currentLevel}-${gameState.difficulty}`;
-      const existingProgress = player.progress[progressKey];
-      const isNewCompletion = !existingProgress?.completed;
-      
-      const newProgress: PlayerProgress = {
-        progressId: progressKey,
-        levelId: gameState.currentLevel,
-        difficulty: gameState.difficulty,
-        completed: true,
-        score: Math.max(score, existingProgress?.score || 0),
-        timeSpent,
-        hintsUsed: gameState.hintsRevealed,
-        completedAt: new Date().toISOString(),
-      };
-
-      const completedLevels = new Set(
-        Object.values(player.progress)
-          .filter(p => p.completed)
-          .map(p => p.levelId)
-      );
-      if (isNewCompletion) {
-        completedLevels.add(gameState.currentLevel);
-      }
-
-      const newAchievements = [...player.achievements];
-      
-      if (completedLevels.size >= 1 && !newAchievements.includes("first-blood")) {
-        newAchievements.push("first-blood");
-      }
-      if (completedLevels.size >= 5 && !newAchievements.includes("hacker-rookie")) {
-        newAchievements.push("hacker-rookie");
-      }
-      if (completedLevels.size >= 10 && !newAchievements.includes("cyber-warrior")) {
-        newAchievements.push("cyber-warrior");
-      }
-      if (timeSpent < 30 && !newAchievements.includes("speed-demon")) {
-        newAchievements.push("speed-demon");
-      }
-      if (gameState.hintsRevealed === 0 && !newAchievements.includes("no-hints")) {
-        newAchievements.push("no-hints");
-      }
-
-      setPlayer(prev => {
-        if (!prev) return prev;
-        const scoreDiff = isNewCompletion ? score : Math.max(0, score - (existingProgress?.score || 0));
-        return {
-          ...prev,
-          totalScore: prev.totalScore + scoreDiff,
-          levelsCompleted: completedLevels.size,
-          achievements: newAchievements,
-          progress: {
-            ...prev.progress,
-            [progressKey]: newProgress,
-          },
-        };
-      });
+      updatePlayerProgress(score);
     }
 
     return isCorrect;
-  }, [gameState, player, startTime]);
+  }, [gameState, player, startTime, updatePlayerProgress]);
+
+  const completeAILevel = useCallback((score: number) => {
+    setGameState(prev => ({
+      ...prev,
+      exploitAttempted: true,
+      exploitSuccess: true,
+      isPlaying: false,
+    }));
+    
+    updatePlayerProgress(score);
+  }, [updatePlayerProgress]);
 
   const resetLevel = useCallback(() => {
     if (gameState.currentLevel !== null) {
@@ -225,6 +244,7 @@ export function useGameState() {
     updateInput,
     revealHint,
     attemptExploit,
+    completeAILevel,
     resetLevel,
     exitLevel,
     isLevelCompleted,

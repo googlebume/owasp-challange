@@ -33,6 +33,7 @@ export default function GamePlay() {
     updateInput,
     revealHint,
     attemptExploit,
+    completeAILevel,
     resetLevel,
     exitLevel,
     isLevelCompleted,
@@ -281,6 +282,24 @@ export default function GamePlay() {
               onSubmit={handleSubmit}
               exploitAttempted={gameState.exploitAttempted}
               exploitSuccess={gameState.exploitSuccess}
+              difficulty={gameState.difficulty}
+              onAISuccess={() => {
+                const config = difficultyConfig[gameState.difficulty];
+                const timeSpent = config.timeLimit 
+                  ? config.timeLimit - (gameState.timeRemaining || 0)
+                  : Math.floor((Date.now() - performance.now()) / 1000);
+                
+                setTimeSpentAtCompletion(timeSpent);
+                const score = calculateScore(
+                  level.basePoints, 
+                  gameState.difficulty, 
+                  timeSpent, 
+                  gameState.hintsRevealed
+                );
+                setFinalScore(score);
+                completeAILevel(score);
+                setShowSuccess(true);
+              }}
             />
           )}
         </div>
@@ -307,6 +326,8 @@ export default function GamePlay() {
           onNextLevel={handleNextLevel}
           onBackToLevels={handleBackToLevels}
           isLastLevel={levelId >= levels.length}
+          playerName={player?.nickname}
+          totalScore={player?.totalScore}
         />
       )}
     </div>

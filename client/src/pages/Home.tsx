@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { LevelCard } from "@/components/LevelCard";
 import { ProgressTracker } from "@/components/ProgressTracker";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
+import { Footer } from "@/components/Footer";
 import { useGameState } from "@/hooks/useGameState";
 import { useLocation } from "wouter";
 import { Badge } from "@/components/ui/badge";
@@ -69,7 +70,7 @@ export default function Home() {
                 OWASP TOP 10 <span className="text-primary">2025</span>
               </h2>
               <p className="text-muted-foreground max-w-2xl">
-                Пройдіть 10 інтерактивних рівнів, щоб навчитися знаходити та експлуатувати найпоширеніші веб-вразливості.
+                Пройдіть 12 інтерактивних рівнів, щоб навчитися знаходити та експлуатувати найпоширеніші веб-вразливості.
                 Кожен рівень симулює реальну атаку.
               </p>
               
@@ -89,7 +90,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {levels.map((level) => (
                 <LevelCard
                   key={level.id}
@@ -137,6 +138,8 @@ export default function Home() {
           </aside>
         </div>
       </main>
+      
+      <Footer />
     </div>
   );
 }

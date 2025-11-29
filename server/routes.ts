@@ -1,16 +1,19 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { generateHint } from "./openai";
+import { generateHint, generateAIChallenge, verifyAIAnswer, type AIChallenge } from "./openai";
 import { 
   insertPlayerSchema, 
   submitExploitSchema, 
   hintRequestSchema,
   levels,
   difficultyConfig,
-  type PlayerProgress
+  type PlayerProgress,
+  type Difficulty
 } from "@shared/schema";
 import { z } from "zod";
+
+const activeChallenges: Map<string, { challenges: AIChallenge[], currentStep: number }> = new Map();
 
 export async function registerRoutes(
   httpServer: Server,
@@ -165,6 +168,82 @@ export async function registerRoutes(
       res.json(levelData);
     } catch (error) {
       res.status(500).json({ error: "Failed to get level" });
+    }
+  });
+
+  app.post("/api/ai-challenge/generate", async (req, res) => {
+    try {
+      const { levelId, difficulty, sessionId } = req.body;
+      
+      const level = levels.find(l => l.id === levelId);
+      if (!level || !level.isAIGenerated) {
+        return res.status(400).json({ error: "Not an AI-generated level" });
+      }
+
+      const totalSteps = level.requiredInputs || 1;
+      const challenges: AIChallenge[] = [];
+
+      for (let i = 1; i <= totalSteps; i++) {
+        const challenge = await generateAIChallenge(difficulty as Difficulty, i, totalSteps);
+        challenges.push(challenge);
+      }
+
+      activeChallenges.set(sessionId, { challenges, currentStep: 0 });
+
+      res.json({
+        scenario: challenges[0].scenario,
+        currentStep: 1,
+        totalSteps
+      });
+    } catch (error) {
+      console.error("AI challenge generation error:", error);
+      res.status(500).json({ error: "Failed to generate AI challenge" });
+    }
+  });
+
+  app.post("/api/ai-challenge/verify", async (req, res) => {
+    try {
+      const { sessionId, answer } = req.body;
+
+      const session = activeChallenges.get(sessionId);
+      if (!session) {
+        return res.status(400).json({ error: "No active challenge session" });
+      }
+
+      const currentChallenge = session.challenges[session.currentStep];
+      const result = await verifyAIAnswer(currentChallenge, answer);
+
+      if (result.isCorrect) {
+        session.currentStep++;
+        
+        if (session.currentStep >= session.challenges.length) {
+          activeChallenges.delete(sessionId);
+          return res.json({
+            success: true,
+            completed: true,
+            feedback: result.feedback
+          });
+        } else {
+          const nextChallenge = session.challenges[session.currentStep];
+          return res.json({
+            success: true,
+            completed: false,
+            feedback: result.feedback,
+            nextScenario: nextChallenge.scenario,
+            currentStep: session.currentStep + 1,
+            totalSteps: session.challenges.length
+          });
+        }
+      } else {
+        return res.json({
+          success: false,
+          completed: false,
+          feedback: result.feedback
+        });
+      }
+    } catch (error) {
+      console.error("AI challenge verification error:", error);
+      res.status(500).json({ error: "Failed to verify answer" });
     }
   });
 
