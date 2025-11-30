@@ -2,6 +2,7 @@ import { CheckCircle2, Circle, Lock, Star, Trophy } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { levels, achievements, type Achievement, type Difficulty } from "@shared/schema";
 
@@ -101,26 +102,34 @@ export function ProgressTracker({
               const isUnlocked = playerAchievements.includes(achievement.id);
               
               return (
-                <div
-                  key={achievement.id}
-                  className={cn(
-                    "p-3 rounded-lg border-2 text-center transition-all",
-                    isUnlocked
-                      ? "border-accent bg-accent/10"
-                      : "border-muted bg-muted/10 opacity-50"
-                  )}
-                  title={achievement.descriptionUa}
-                >
-                  <div className={cn(
-                    "text-2xl mb-1",
-                    isUnlocked ? "grayscale-0" : "grayscale"
-                  )}>
-                    {getAchievementIcon(achievement.icon)}
-                  </div>
-                  <p className="text-xs font-mono truncate">
-                    {achievement.nameUa}
-                  </p>
-                </div>
+                <TooltipProvider key={achievement.id}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        className={cn(
+                          "p-3 rounded-lg border-2 text-center transition-all cursor-pointer hover-elevate",
+                          isUnlocked
+                            ? "border-accent bg-accent/10"
+                            : "border-muted bg-muted/10 opacity-50"
+                        )}
+                      >
+                        <div className={cn(
+                          "text-2xl mb-1",
+                          isUnlocked ? "grayscale-0" : "grayscale"
+                        )}>
+                          {getAchievementIcon(achievement.icon)}
+                        </div>
+                        <p className="text-xs font-mono truncate">
+                          {achievement.nameUa}
+                        </p>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p className="font-mono text-sm">{achievement.nameUa}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{achievement.descriptionUa}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               );
             })}
           </div>

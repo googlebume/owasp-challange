@@ -61,7 +61,7 @@ export default function Home() {
         onMenuClick={() => setShowProgress(!showProgress)}
       />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto max-w-6xl px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1">
             <div className="mb-8 text-center lg:text-left">
@@ -90,7 +90,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5">
               {levels.map((level) => (
                 <LevelCard
                   key={level.id}
