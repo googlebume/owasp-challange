@@ -1,5 +1,6 @@
 import { Zap, Clock, Skull } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { type Difficulty, difficultyConfig } from "@shared/schema";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +47,7 @@ export function DifficultySelector({
             : "border-red-500/30 text-red-400/70 hover:border-red-500/60",
         };
 
-        return (
+        const button = (
           <Button
             key={id}
             variant="outline"
@@ -65,7 +66,7 @@ export function DifficultySelector({
               compact ? "flex-row" : "flex-col"
             )}>
               <Icon className={cn("transition-transform", isSelected && "scale-110", compact ? "h-4 w-4" : "h-5 w-5")} />
-              <div className={cn("flex flex-col", compact && "hidden sm:flex")}>
+              <div className={cn("flex flex-col", compact ? "hidden sm:flex" : "hidden md:flex")}>
                 <span className={cn("font-bold tracking-wider", compact ? "text-xs" : "text-sm")}>{labelUa}</span>
                 {!compact && (
                   <span className="text-xs opacity-70">
@@ -79,6 +80,20 @@ export function DifficultySelector({
               )}
             </div>
           </Button>
+        );
+
+        return (
+          <TooltipProvider key={id}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                {button}
+              </TooltipTrigger>
+              <TooltipContent side="top" className="hidden md:block font-mono">
+                <p>{labelUa}</p>
+                <p className="text-xs opacity-80">{config.hintDelay}s • x{config.multiplier}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         );
       })}
     </div>
