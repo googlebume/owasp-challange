@@ -48,6 +48,7 @@ export function EducationalModal({
           setShowCertificate(false);
           onBackToLevels();
         }}
+        difficulty={difficulty}
       />
     );
   }
@@ -175,6 +176,16 @@ export function EducationalModal({
           >
             До рівнів
           </Button>
+          {playerName && (
+            <Button
+              onClick={() => setShowCertificate(true)}
+              className="flex-1 font-mono bg-gradient-to-r from-primary to-accent"
+              data-testid="button-get-certificate"
+            >
+              <Award className="h-4 w-4 mr-2" />
+              Отримати сертифікат ({difficulty.toUpperCase()})
+            </Button>
+          )}
           {!isLastLevel && (
             <Button
               onClick={onNextLevel}
@@ -183,16 +194,6 @@ export function EducationalModal({
             >
               Наступний рівень
               <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          )}
-          {isLastLevel && playerName && (
-            <Button
-              onClick={() => setShowCertificate(true)}
-              className="flex-1 font-mono bg-gradient-to-r from-primary to-accent"
-              data-testid="button-get-certificate"
-            >
-              <Award className="h-4 w-4 mr-2" />
-              Отримати сертифікат!
             </Button>
           )}
         </div>

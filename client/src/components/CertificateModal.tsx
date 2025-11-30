@@ -8,10 +8,23 @@ interface CertificateModalProps {
   playerName: string;
   totalScore: number;
   onClose: () => void;
+  difficulty?: "easy" | "medium" | "hard";
 }
 
-export function CertificateModal({ playerName, totalScore, onClose }: CertificateModalProps) {
+export function CertificateModal({ playerName, totalScore, onClose, difficulty }: CertificateModalProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const difficultyNames: Record<string, string> = {
+    easy: "ЛЕГКА",
+    medium: "СЕРЕДНЯ",
+    hard: "ВАЖКА"
+  };
+  
+  const difficultyColors: Record<string, number[]> = {
+    easy: [34, 197, 94],
+    medium: [234, 179, 8],
+    hard: [239, 68, 68]
+  };
 
   const generateCertificate = async () => {
     setIsGenerating(true);
@@ -41,33 +54,43 @@ export function CertificateModal({ playerName, totalScore, onClose }: Certificat
       doc.rect(18, 18, width - 36, height - 36, "S");
 
       doc.setTextColor(59, 130, 246);
-      doc.setFontSize(14);
-      doc.text("OWASP_CHALLENGE", width / 2, 35, { align: "center" });
+      doc.setFontSize(12);
+      doc.text("OWASP_CHALLENGE 2025", width / 2, 28, { align: "center" });
+      
+      doc.setTextColor(147, 112, 219);
+      doc.setFontSize(10);
+      doc.text("Digital Phoenix", width / 2, 33, { align: "center" });
 
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(36);
-      doc.text("СЕРТИФІКАТ", width / 2, 55, { align: "center" });
+      doc.text("СЕРТИФІКАТ", width / 2, 52, { align: "center" });
 
       doc.setTextColor(148, 163, 184);
       doc.setFontSize(14);
-      doc.text("Цей сертифікат підтверджує, що", width / 2, 75, { align: "center" });
+      doc.text("Цей сертифікат підтверджує, що", width / 2, 70, { align: "center" });
 
       doc.setTextColor(59, 130, 246);
       doc.setFontSize(28);
-      doc.text(playerName, width / 2, 95, { align: "center" });
+      doc.text(playerName, width / 2, 88, { align: "center" });
 
       doc.setTextColor(148, 163, 184);
-      doc.setFontSize(14);
-      doc.text("успішно пройшов(-ла) всі 12 рівнів", width / 2, 115, { align: "center" });
-      doc.text("інтерактивного курсу з кібербезпеки", width / 2, 125, { align: "center" });
+      doc.setFontSize(13);
+      doc.text("успішно пройшов(-ла) курс з кібербезпеки", width / 2, 105, { align: "center" });
+
+      if (difficulty) {
+        const diffColor = difficultyColors[difficulty] || [59, 130, 246];
+        doc.setTextColor(...diffColor);
+        doc.setFontSize(24);
+        doc.text(`Рівень складності: ${difficultyNames[difficulty]}`, width / 2, 122, { align: "center" });
+      }
 
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(16);
-      doc.text("OWASP Top 10 - 2025", width / 2, 140, { align: "center" });
+      doc.setFontSize(14);
+      doc.text("OWASP Top 10 - 2025", width / 2, 138, { align: "center" });
 
       doc.setTextColor(234, 179, 8);
-      doc.setFontSize(20);
-      doc.text(`Загальний рахунок: ${totalScore.toLocaleString()}`, width / 2, 160, { align: "center" });
+      doc.setFontSize(18);
+      doc.text(`Рахунок: ${totalScore.toLocaleString()}`, width / 2, 156, { align: "center" });
 
       const date = new Date().toLocaleDateString("uk-UA", {
         year: "numeric",
@@ -75,10 +98,11 @@ export function CertificateModal({ playerName, totalScore, onClose }: Certificat
         day: "numeric"
       });
       doc.setTextColor(148, 163, 184);
-      doc.setFontSize(12);
-      doc.text(`Дата видачі: ${date}`, width / 2, 180, { align: "center" });
+      doc.setFontSize(11);
+      doc.text(`Дата видачі: ${date}`, width / 2, 172, { align: "center" });
 
-      doc.save(`OWASP_Certificate_${playerName.replace(/\s+/g, "_")}.pdf`);
+      const diffSuffix = difficulty ? `_${difficulty}` : "";
+      doc.save(`OWASP_Certificate_${playerName.replace(/\s+/g, "_")}${diffSuffix}.pdf`);
     } catch (error) {
       console.error("Failed to generate certificate:", error);
     } finally {

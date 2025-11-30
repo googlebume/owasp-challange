@@ -6,8 +6,13 @@ export function Footer() {
     <footer className="border-t border-border/50 bg-card/30 backdrop-blur-sm py-6">
       <div className="container mx-auto px-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-muted-foreground font-mono">
-            OWASP_CHALLENGE 2025
+          <div className="flex flex-col gap-1">
+            <div className="text-sm text-muted-foreground font-mono">
+              OWASP_CHALLENGE 2025
+            </div>
+            <div className="text-xs text-muted-foreground/70 font-mono">
+              © 2025 Digital Phoenix. Усі права захищені.
+            </div>
           </div>
           
           <Button
