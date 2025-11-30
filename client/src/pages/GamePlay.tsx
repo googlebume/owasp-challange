@@ -45,6 +45,7 @@ export default function GamePlay() {
   const [finalScore, setFinalScore] = useState(0);
   const [timeSpentAtCompletion, setTimeSpentAtCompletion] = useState(0);
   const [playerAttempts, setPlayerAttempts] = useState<string[]>([]);
+  const [showAnswer, setShowAnswer] = useState(false);
 
   useEffect(() => {
     if (level && !gameState.isPlaying && !showSuccess) {
@@ -300,6 +301,10 @@ export default function GamePlay() {
                 completeAILevel(score);
                 setShowSuccess(true);
               }}
+              onShowAnswer={() => {
+                updateInput(level.solution);
+                setShowAnswer(true);
+              }}
             />
           )}
         </div>
@@ -314,6 +319,7 @@ export default function GamePlay() {
         isOpen={showHints}
         onClose={() => setShowHints(false)}
         playerAttempts={playerAttempts}
+        levelObjective={level?.objectiveUa}
       />
 
       {showSuccess && (

@@ -16,6 +16,7 @@ interface HintPanelProps {
   isOpen: boolean;
   onClose: () => void;
   playerAttempts?: string[];
+  levelObjective?: string;
 }
 
 export function HintPanel({
@@ -26,7 +27,8 @@ export function HintPanel({
   onRevealHint,
   isOpen,
   onClose,
-  playerAttempts = []
+  playerAttempts = [],
+  levelObjective
 }: HintPanelProps) {
   const [loadingHint, setLoadingHint] = useState<number | null>(null);
   const [hints, setHints] = useState<string[]>([]);
@@ -47,7 +49,8 @@ export function HintPanel({
           levelId,
           difficulty,
           hintNumber: nextHintNumber,
-          playerAttempts
+          playerAttempts,
+          levelObjective
         })
       });
       

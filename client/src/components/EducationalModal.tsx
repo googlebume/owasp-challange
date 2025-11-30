@@ -84,7 +84,7 @@ export function EducationalModal({
         </CardHeader>
 
         <CardContent className="p-0 overflow-auto max-h-[calc(90vh-200px)]">
-          <div className="p-6 border-b border-border bg-card/50">
+          <div className="p-6 border-b border-border bg-card/50 space-y-4">
             <ScoreDisplay
               basePoints={level.basePoints}
               difficulty={difficulty}
@@ -92,6 +92,12 @@ export function EducationalModal({
               hintPenalty={hintPenalty}
               totalScore={score}
             />
+            <div className="flex items-center justify-center gap-4 pt-4 border-t border-border">
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground font-mono mb-1">ЗАГАЛЬНИЙ ЧАС</p>
+                <p className="text-lg font-bold text-primary font-mono">{Math.floor(timeSpent / 60)}:{String(timeSpent % 60).padStart(2, '0')}</p>
+              </div>
+            </div>
           </div>
 
           <Tabs defaultValue="what" className="w-full">
