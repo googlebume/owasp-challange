@@ -3,9 +3,6 @@ import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Award, Download, X, Shield } from "lucide-react";
-import beginnerDiplomaUrl from "@assets/Початківець_1764615073620.jpg";
-import advancedDiplomaUrl from "@assets/Просунутий_1764615073621.jpg";
-import expertDiplomaUrl from "@assets/Експерт_1764615073620.jpg";
 
 interface CertificateModalProps {
   playerName: string;
@@ -17,22 +14,32 @@ interface CertificateModalProps {
 export function CertificateModal({ playerName, totalScore, onClose, difficulty }: CertificateModalProps) {
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const difficultyNames: Record<string, string> = {
-    easy: "ЛЕГКА",
-    medium: "СЕРЕДНЯ",
-    hard: "ВАЖКА"
-  };
-
   const diplomaMap: Record<string, string> = {
-    easy: beginnerDiplomaUrl,
-    medium: advancedDiplomaUrl,
-    hard: expertDiplomaUrl
+    easy: "/attached_assets/Початківець_1764615073620.jpg",
+    medium: "/attached_assets/Просунутий_1764615073621.jpg",
+    hard: "/attached_assets/Експерт_1764615073620.jpg"
   };
 
   const generateCertificate = async () => {
     setIsGenerating(true);
     
     try {
+      // Fetch diploma image
+      const diplomaPath = difficulty ? diplomaMap[difficulty] : null;
+      if (!diplomaPath) {
+        throw new Error("No diploma image found");
+      }
+
+      const response = await fetch(diplomaPath);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      
+      const imageDataUrl = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
       const doc = new jsPDF({
         orientation: "portrait",
         unit: "mm",
@@ -43,9 +50,7 @@ export function CertificateModal({ playerName, totalScore, onClose, difficulty }
       const height = doc.internal.pageSize.getHeight();
 
       // Add diploma image as background
-      if (difficulty && diplomaMap[difficulty]) {
-        doc.addImage(diplomaMap[difficulty], "JPEG", 0, 0, width, height);
-      }
+      doc.addImage(imageDataUrl, "JPEG", 0, 0, width, height);
 
       // Position text 352px from bottom
       // Convert 352px to mm: 352 * 0.264583 ≈ 93.07 mm
