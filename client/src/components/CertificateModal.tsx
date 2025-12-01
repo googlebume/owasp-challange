@@ -3,6 +3,9 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Award, Download, X, Shield } from "lucide-react";
+import beginnerPdfUrl from "@assets/Початківець_1764615904508.pdf";
+import advancedPdfUrl from "@assets/Просунутий_1764615904509.pdf";
+import expertPdfUrl from "@assets/Експерт_1764615904510.pdf";
 
 interface CertificateModalProps {
   playerName: string;
@@ -15,9 +18,9 @@ export function CertificateModal({ playerName, totalScore, onClose, difficulty }
   const [isGenerating, setIsGenerating] = useState(false);
 
   const diplomaMap: Record<string, string> = {
-    easy: "/attached_assets/Початківець_1764615904508.pdf",
-    medium: "/attached_assets/Просунутий_1764615904509.pdf",
-    hard: "/attached_assets/Експерт_1764615904510.pdf"
+    easy: beginnerPdfUrl,
+    medium: advancedPdfUrl,
+    hard: expertPdfUrl
   };
 
   const generateCertificate = async () => {
@@ -31,6 +34,9 @@ export function CertificateModal({ playerName, totalScore, onClose, difficulty }
       }
 
       const response = await fetch(diplomaPath);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch PDF: ${response.status}`);
+      }
       const arrayBuffer = await response.arrayBuffer();
 
       // Load the PDF
@@ -69,6 +75,9 @@ export function CertificateModal({ playerName, totalScore, onClose, difficulty }
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Failed to generate diploma:", error);
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+      }
     } finally {
       setIsGenerating(false);
     }
