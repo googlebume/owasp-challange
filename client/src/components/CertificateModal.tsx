@@ -44,9 +44,9 @@ export function CertificateModal({ playerName, totalScore, onClose, difficulty }
       const firstPage = pdfDoc.getPage(0);
       const { width, height } = firstPage.getSize();
 
-      // Position text 352px from bottom
-      // Convert 352px to points: 352 * 0.75 = 264 points (1px = 0.75pt)
-      const textFromBottom = 264;
+      // Position text 312px from bottom (352px - 40px)
+      // Convert 312px to points: 312 * 0.75 = 234 points (1px = 0.75pt)
+      const textFromBottom = 234;
       const yPosition = textFromBottom;
 
       // Add player name centered
