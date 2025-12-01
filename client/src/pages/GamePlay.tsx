@@ -46,9 +46,11 @@ export default function GamePlay() {
   const [timeSpentAtCompletion, setTimeSpentAtCompletion] = useState(0);
   const [playerAttempts, setPlayerAttempts] = useState<string[]>([]);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [levelStartTime, setLevelStartTime] = useState<number>(0);
 
   useEffect(() => {
     if (level && !gameState.isPlaying && !showSuccess) {
+      setLevelStartTime(Date.now());
       startLevel(levelId, initialDifficulty);
     }
   }, [levelId, initialDifficulty]);
@@ -70,7 +72,7 @@ export default function GamePlay() {
       const config = difficultyConfig[gameState.difficulty];
       const timeSpent = config.timeLimit 
         ? config.timeLimit - (gameState.timeRemaining || 0)
-        : Math.floor((Date.now() - performance.now()) / 1000);
+        : Math.floor((Date.now() - levelStartTime) / 1000);
       
       setTimeSpentAtCompletion(timeSpent);
       const score = calculateScore(
@@ -288,7 +290,7 @@ export default function GamePlay() {
                 const config = difficultyConfig[gameState.difficulty];
                 const timeSpent = config.timeLimit 
                   ? config.timeLimit - (gameState.timeRemaining || 0)
-                  : Math.floor((Date.now() - performance.now()) / 1000);
+                  : Math.floor((Date.now() - levelStartTime) / 1000);
                 
                 setTimeSpentAtCompletion(timeSpent);
                 const score = calculateScore(
