@@ -5,7 +5,7 @@ export type Difficulty = "easy" | "medium" | "hard";
 export const difficultyConfig = {
   easy: { hintDelay: 30, timeLimit: null, multiplier: 1 },
   medium: { hintDelay: 60, timeLimit: null, multiplier: 2 },
-  hard: { hintDelay: 120, timeLimit: 300, multiplier: 3 },
+  hard: { hintDelay: 120, timeLimit: 60, multiplier: 3 },
 } as const;
 
 export interface Level {

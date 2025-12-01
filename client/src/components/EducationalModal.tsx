@@ -109,7 +109,7 @@ export function EducationalModal({
             <div className="flex items-center justify-center gap-4 pt-4 border-t border-border">
               <div className="text-center">
                 <p className="text-xs text-muted-foreground font-mono mb-1">ЗАГАЛЬНИЙ ЧАС</p>
-                <p className="text-lg font-bold text-primary font-mono">{Math.floor(timeSpent / 60)}:{String(timeSpent % 60).padStart(2, '0')}</p>
+                <p className="text-lg font-bold text-primary font-mono">{new Date(timeSpent * 1000).toISOString().substring(11, 19)}</p>
               </div>
             </div>
           </div>
