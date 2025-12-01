@@ -3,6 +3,9 @@ import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Award, Download, X, Shield } from "lucide-react";
+import beginnerDiplomaUrl from "@assets/Початківець_1764615073620.jpg";
+import advancedDiplomaUrl from "@assets/Просунутий_1764615073621.jpg";
+import expertDiplomaUrl from "@assets/Експерт_1764615073620.jpg";
 
 interface CertificateModalProps {
   playerName: string;
@@ -19,11 +22,11 @@ export function CertificateModal({ playerName, totalScore, onClose, difficulty }
     medium: "СЕРЕДНЯ",
     hard: "ВАЖКА"
   };
-  
-  const difficultyColors: Record<string, number[]> = {
-    easy: [34, 197, 94],
-    medium: [234, 179, 8],
-    hard: [239, 68, 68]
+
+  const diplomaMap: Record<string, string> = {
+    easy: beginnerDiplomaUrl,
+    medium: advancedDiplomaUrl,
+    hard: expertDiplomaUrl
   };
 
   const generateCertificate = async () => {
@@ -31,7 +34,7 @@ export function CertificateModal({ playerName, totalScore, onClose, difficulty }
     
     try {
       const doc = new jsPDF({
-        orientation: "landscape",
+        orientation: "portrait",
         unit: "mm",
         format: "a4"
       });
@@ -39,70 +42,26 @@ export function CertificateModal({ playerName, totalScore, onClose, difficulty }
       const width = doc.internal.pageSize.getWidth();
       const height = doc.internal.pageSize.getHeight();
 
-      doc.setFillColor(15, 23, 42);
-      doc.rect(0, 0, width, height, "F");
-
-      doc.setFillColor(30, 41, 59);
-      doc.rect(10, 10, width - 20, height - 20, "F");
-
-      doc.setDrawColor(59, 130, 246);
-      doc.setLineWidth(2);
-      doc.rect(15, 15, width - 30, height - 30, "S");
-
-      doc.setDrawColor(147, 51, 234);
-      doc.setLineWidth(1);
-      doc.rect(18, 18, width - 36, height - 36, "S");
-
-      doc.setTextColor(59, 130, 246);
-      doc.setFontSize(12);
-      doc.text("OWASP_CHALLENGE 2025", width / 2, 28, { align: "center" });
-      
-      doc.setTextColor(147, 112, 219);
-      doc.setFontSize(10);
-      doc.text("Digital Phoenix", width / 2, 33, { align: "center" });
-
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(36);
-      doc.text("СЕРТИФІКАТ", width / 2, 52, { align: "center" });
-
-      doc.setTextColor(148, 163, 184);
-      doc.setFontSize(14);
-      doc.text("Цей сертифікат підтверджує, що", width / 2, 70, { align: "center" });
-
-      doc.setTextColor(59, 130, 246);
-      doc.setFontSize(28);
-      doc.text(playerName, width / 2, 88, { align: "center" });
-
-      doc.setTextColor(148, 163, 184);
-      doc.setFontSize(13);
-      doc.text("успішно пройшов(-ла) курс з кібербезпеки", width / 2, 105, { align: "center" });
-
-      if (difficulty) {
-        const diffColor = difficultyColors[difficulty] || [59, 130, 246];
-        doc.setTextColor(...diffColor);
-        doc.setFontSize(24);
-        doc.text(`Рівень складності: ${difficultyNames[difficulty]}`, width / 2, 122, { align: "center" });
+      // Add diploma image as background
+      if (difficulty && diplomaMap[difficulty]) {
+        doc.addImage(diplomaMap[difficulty], "JPEG", 0, 0, width, height);
       }
 
+      // Position text 352px from bottom
+      // Convert 352px to mm: 352 * 0.264583 ≈ 93.07 mm
+      const textFromBottom = 93.07;
+      const yPosition = height - textFromBottom;
+
+      // Set text color to white
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(14);
-      doc.text("OWASP Top 10 - 2025", width / 2, 138, { align: "center" });
-
-      doc.setTextColor(234, 179, 8);
-      doc.setFontSize(18);
-      doc.text(`Рахунок: ${totalScore.toLocaleString()}`, width / 2, 156, { align: "center" });
-
-      const date = new Date().toLocaleDateString("uk-UA", {
-        year: "numeric",
-        month: "long",
-        day: "numeric"
-      });
-      doc.setTextColor(148, 163, 184);
-      doc.setFontSize(11);
-      doc.text(`Дата видачі: ${date}`, width / 2, 172, { align: "center" });
+      doc.setFontSize(32);
+      doc.setFont("helvetica", "bold");
+      
+      // Center text horizontally
+      doc.text(playerName, width / 2, yPosition, { align: "center" });
 
       const diffSuffix = difficulty ? `_${difficulty}` : "";
-      doc.save(`OWASP_Certificate_${playerName.replace(/\s+/g, "_")}${diffSuffix}.pdf`);
+      doc.save(`OWASP_Диплом_${playerName.replace(/\s+/g, "_")}${diffSuffix}.pdf`);
     } catch (error) {
       console.error("Failed to generate certificate:", error);
     } finally {
