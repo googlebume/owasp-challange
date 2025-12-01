@@ -20,6 +20,7 @@ interface EducationalModalProps {
   isLastLevel: boolean;
   playerName?: string;
   totalScore?: number;
+  playerProgress?: Record<string, any>;
 }
 
 export function EducationalModal({
@@ -32,12 +33,24 @@ export function EducationalModal({
   onBackToLevels,
   isLastLevel,
   playerName,
-  totalScore
+  totalScore,
+  playerProgress = {}
 }: EducationalModalProps) {
   const [showCertificate, setShowCertificate] = useState(false);
   const multiplier = difficulty === "easy" ? 1 : difficulty === "medium" ? 2 : 3;
   const timeBonus = Math.max(0, 100 - Math.floor(timeSpent / 10));
   const hintPenalty = hintsUsed * 25;
+
+  // Check if all 10 levels are completed for this difficulty
+  const allLevelsCompletedForDifficulty = () => {
+    for (let i = 1; i <= 10; i++) {
+      const progressKey = `${i}-${difficulty}`;
+      if (!playerProgress[progressKey]?.completed) {
+        return false;
+      }
+    }
+    return true;
+  };
 
   if (showCertificate && playerName && totalScore !== undefined) {
     return (
@@ -176,14 +189,14 @@ export function EducationalModal({
           >
             До рівнів
           </Button>
-          {playerName && (
+          {playerName && allLevelsCompletedForDifficulty() && (
             <Button
               onClick={() => setShowCertificate(true)}
               className="flex-1 font-mono bg-gradient-to-r from-primary to-accent"
               data-testid="button-get-certificate"
             >
               <Award className="h-4 w-4 mr-2" />
-              Отримати сертифікат ({difficulty.toUpperCase()})
+              Отримати диплом ({difficulty.toUpperCase()})
             </Button>
           )}
           {!isLastLevel && (
