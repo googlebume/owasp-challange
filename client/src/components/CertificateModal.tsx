@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { jsPDF } from "jspdf";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Award, Download, X, Shield } from "lucide-react";
@@ -15,60 +15,60 @@ export function CertificateModal({ playerName, totalScore, onClose, difficulty }
   const [isGenerating, setIsGenerating] = useState(false);
 
   const diplomaMap: Record<string, string> = {
-    easy: "/attached_assets/Початківець_1764615073620.jpg",
-    medium: "/attached_assets/Просунутий_1764615073621.jpg",
-    hard: "/attached_assets/Експерт_1764615073620.jpg"
+    easy: "/attached_assets/Початківець_1764615904508.pdf",
+    medium: "/attached_assets/Просунутий_1764615904509.pdf",
+    hard: "/attached_assets/Експерт_1764615904510.pdf"
   };
 
   const generateCertificate = async () => {
     setIsGenerating(true);
     
     try {
-      // Fetch diploma image
+      // Fetch diploma PDF
       const diplomaPath = difficulty ? diplomaMap[difficulty] : null;
       if (!diplomaPath) {
-        throw new Error("No diploma image found");
+        throw new Error("No diploma PDF found");
       }
 
       const response = await fetch(diplomaPath);
-      const blob = await response.blob();
-      const reader = new FileReader();
-      
-      const imageDataUrl = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
+      const arrayBuffer = await response.arrayBuffer();
 
-      const doc = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4"
-      });
-
-      const width = doc.internal.pageSize.getWidth();
-      const height = doc.internal.pageSize.getHeight();
-
-      // Add diploma image as background
-      doc.addImage(imageDataUrl, "JPEG", 0, 0, width, height);
+      // Load the PDF
+      const pdfDoc = await PDFDocument.load(arrayBuffer);
+      const firstPage = pdfDoc.getPage(0);
+      const { width, height } = firstPage.getSize();
 
       // Position text 352px from bottom
-      // Convert 352px to mm: 352 * 0.264583 ≈ 93.07 mm
-      const textFromBottom = 93.07;
-      const yPosition = height - textFromBottom;
+      // Convert 352px to points: 352 * 0.75 = 264 points (1px = 0.75pt)
+      const textFromBottom = 264;
+      const yPosition = textFromBottom;
 
-      // Set text color to white
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(32);
-      doc.setFont("helvetica", "bold");
-      
-      // Center text horizontally
-      doc.text(playerName, width / 2, yPosition, { align: "center" });
+      // Add player name centered
+      const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      const fontSize = 32;
+      const textWidth = font.widthOfTextAtSize(playerName, fontSize);
+      const xPosition = (width - textWidth) / 2;
 
+      firstPage.drawText(playerName, {
+        x: xPosition,
+        y: yPosition,
+        size: fontSize,
+        font: font,
+        color: rgb(1, 1, 1) // White text
+      });
+
+      // Save the PDF
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
       const diffSuffix = difficulty ? `_${difficulty}` : "";
-      doc.save(`OWASP_Диплом_${playerName.replace(/\s+/g, "_")}${diffSuffix}.pdf`);
+      link.href = url;
+      link.download = `OWASP_Диплом_${playerName.replace(/\s+/g, "_")}${diffSuffix}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Failed to generate certificate:", error);
+      console.error("Failed to generate diploma:", error);
     } finally {
       setIsGenerating(false);
     }
