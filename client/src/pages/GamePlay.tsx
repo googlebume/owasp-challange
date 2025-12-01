@@ -334,6 +334,7 @@ export default function GamePlay() {
           isLastLevel={levelId >= levels.length}
           playerName={player?.nickname}
           totalScore={player?.totalScore}
+          playerProgress={player?.progress}
         />
       )}
     </div>
