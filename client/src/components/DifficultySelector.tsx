@@ -18,9 +18,9 @@ const difficultyData: { id: Difficulty; label: string; labelUa: string; icon: ty
   { id: "hard", label: "HARD", labelUa: "ВАЖКИЙ", icon: Skull },
 ];
 
-export function DifficultySelector({ 
-  selected, 
-  onSelect, 
+export function DifficultySelector({
+  selected,
+  onSelect,
   completedDifficulties = [],
   disabled = false,
   compact = false
@@ -34,16 +34,16 @@ export function DifficultySelector({
         const config = difficultyConfig[id];
         const isSelected = selected === id;
         const isCompleted = completedDifficulties.includes(id);
-        
+
         const colorClasses = {
-          easy: isSelected 
-            ? "bg-green-500/20 border-green-500 text-green-400 shadow-green-500/20 shadow-lg" 
+          easy: isSelected
+            ? "bg-green-500/20 border-green-500 text-green-400 shadow-green-500/20 shadow-lg"
             : "border-green-500/30 text-green-400/70 hover:border-green-500/60",
-          medium: isSelected 
-            ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 shadow-yellow-500/20 shadow-lg" 
+          medium: isSelected
+            ? "bg-yellow-500/20 border-yellow-500 text-yellow-400 shadow-yellow-500/20 shadow-lg"
             : "border-yellow-500/30 text-yellow-400/70 hover:border-yellow-500/60",
-          hard: isSelected 
-            ? "bg-red-500/20 border-red-500 text-red-400 shadow-red-500/20 shadow-lg" 
+          hard: isSelected
+            ? "bg-red-500/20 border-red-500 text-red-400 shadow-red-500/20 shadow-lg"
             : "border-red-500/30 text-red-400/70 hover:border-red-500/60",
         };
 
@@ -61,13 +61,20 @@ export function DifficultySelector({
               isCompleted && "ring-2 ring-primary/50"
             )}
           >
-            <div className={cn(
-              "flex items-center gap-2",
-              compact ? "flex-row" : "flex-col"
-            )}>
-              <Icon className={cn("transition-transform", isSelected && "scale-110", compact ? "h-4 w-4" : "h-5 w-5")} />
-              <div className={cn("flex flex-col", compact ? "hidden sm:flex" : "hidden md:flex")}>
-                <span className={cn("font-bold tracking-wider", compact ? "text-xs" : "text-sm")}>{labelUa}</span>
+            <div className="flex items-center gap-2">
+              <Icon
+                className={cn(
+                  "transition-transform",
+                  isSelected && "scale-110",
+                  compact ? "h-4 w-4" : "h-5 w-5"
+                )}
+              />
+
+              <div className="flex flex-col max-[766px]:hidden">
+                <span className={cn("font-bold tracking-wider", compact ? "text-xs" : "text-sm")}>
+                  {labelUa}
+                </span>
+
                 {!compact && (
                   <span className="text-xs opacity-70">
                     {config.hintDelay}s • x{config.multiplier}
@@ -75,6 +82,7 @@ export function DifficultySelector({
                   </span>
                 )}
               </div>
+
               {isCompleted && (
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full" />
               )}
