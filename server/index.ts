@@ -12,6 +12,13 @@ declare module "http" {
   }
 }
 
+// Validate required environment variables for production
+if (process.env.NODE_ENV === "production") {
+  if (!process.env.OPENAI_API_KEY) {
+    console.warn("Warning: OPENAI_API_KEY not set. AI features will not work.");
+  }
+}
+
 app.use(
   express.json({
     verify: (req, _res, buf) => {

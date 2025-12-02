@@ -80,6 +80,11 @@ export async function registerRoutes(
         return res.status(404).json({ error: "Level not found" });
       }
       
+      if (!process.env.OPENAI_API_KEY) {
+        // Return a fallback hint if OpenAI API key is not configured
+        return res.json({ hint: "Check the level description for clues. Try different approaches to the vulnerability." });
+      }
+      
       const hint = await generateHint({
         levelId: data.levelId,
         difficulty: data.difficulty,
@@ -178,6 +183,10 @@ export async function registerRoutes(
       const level = levels.find(l => l.id === levelId);
       if (!level || !level.isAIGenerated) {
         return res.status(400).json({ error: "Not an AI-generated level" });
+      }
+
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(503).json({ error: "AI features are not available. Please configure OPENAI_API_KEY." });
       }
 
       const totalSteps = level.requiredInputs || 1;

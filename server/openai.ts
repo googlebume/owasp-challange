@@ -1,10 +1,9 @@
 import OpenAI from "openai";
 import { levels, type Difficulty } from "@shared/schema";
 
-import dotenv from 'dotenv'
-dotenv.config()
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ 
+  apiKey: process.env.OPENAI_API_KEY || "" 
+});
 
 interface HintGenerationParams {
   levelId: number;
@@ -62,7 +61,7 @@ Keep the hint concise (1-3 sentences). Response in Ukrainian only.`;
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-4-turbo",
       messages: [
         {
           role: "system",
@@ -205,7 +204,7 @@ IMPORTANT:
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-4-turbo",
       messages: [
         {
           role: "system",
@@ -317,7 +316,7 @@ Respond in JSON format:
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-4-turbo",
       messages: [
         {
           role: "system",
