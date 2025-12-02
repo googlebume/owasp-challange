@@ -1,0 +1,26 @@
+[33m054e9e0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev[m[33m, [m[1;31morigin/dev[m[33m)[m ai comited host bug fixes
+[33m0efff73[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m change package.json
+[33me37d9c7[m change favicon
+[33mc1419fd[m initial commit
+[33mbc7883b[m[33m ([m[1;31mgitsafe-backup/main[m[33m)[m Saved progress at the end of the loop
+[33m654a87b[m Fix how time spent on a level is calculated
+[33md281e3d[m Adjust game difficulty and time format for better player experience
+[33ma63441e[m Adapt game challenges to different difficulty levels
+[33m5f0758f[m Add logic to display diploma only after completing all levels
+[33m00b9eb9[m Adjust diploma to position player name higher
+[33md7cdd42[m Adjust player name position on certificate for better visual appearance
+[33m646d2c3[m Fix issue where user certificates were not downloading correctly
+[33mbb30fdc[m Update certificate functionality to use PDF diplomas
+[33mc0e7d6b[m Fix certificate generation to correctly load diploma images
+[33m8633a45[m Add downloadable PDF diplomas for completing game levels
+[33ma9766d4[m Adapt difficulty selection buttons for different screen sizes
+[33mb1dc2ae[m Expand content width and improve achievement visibility
+[33mfc0bb85[m Add downloadable PDF certificates for each difficulty level
+[33mdf5a9d2[m Improve game features and fix bugs for a better learning experience
+[33md3f86e8[m Saved progress at the end of the loop
+[33mabef9aa[m Enhance the game with AI-generated challenges and new features
+[33mc84e70b[m Update game progress tracking with correct player and level identifiers
+[33mc741b20[m Add core game mechanics and structure for OWASP vulnerability training
+[33m8827b52[m Add OpenAI integration for advanced AI capabilities
+[33m18fc199[m Extracted stack files
+[33m4c59734[m Initial commit
