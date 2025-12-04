@@ -1,11 +1,13 @@
 import express, { type Express, type Request, type Response } from "express";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 
 export function serveStatic(app: Express) {
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const distPath = path.resolve(__dirname, "public");
+  // In production (CommonJS bundle), __dirname is available
+  // In development (ESM), we derive it from current file location
+  // But here, we use a relative path from the dist directory
+  const distPath = path.resolve(process.cwd(), "dist", "public");
+  
   if (!fs.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`,
