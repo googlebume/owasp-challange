@@ -13,41 +13,48 @@ function logStatic(message: string) {
 }
 
 export function serveStatic(app: Express) {
-  // On Vercel and in production, look for static files in dist/
-  // The build process puts everything in dist/public, but we also check dist root
+  // On Vercel, __dirname points to /var/task/dist when bundled
+  // We need to look for static files relative to that location
   let distPath: string;
   
-  const publicPath = path.resolve(process.cwd(), "dist", "public");
-  const distRootPath = path.resolve(process.cwd(), "dist");
+  // Try multiple possible paths
+  const possiblePaths = [
+    // Local development
+    path.resolve(process.cwd(), "dist", "public"),
+    // Vercel - bundled as CJS, __dirname is dist/
+    path.resolve(__dirname, "public"),
+    // Vercel - alternative path
+    path.join(__dirname, "..", "dist", "public"),
+    // Fallback
+    path.resolve(process.cwd(), "dist", "public"),
+  ];
   
   logStatic(`CWD: ${process.cwd()}`);
-  logStatic(`Public path exists: ${fs.existsSync(publicPath)}`);
-  logStatic(`Dist root path exists: ${fs.existsSync(distRootPath)}`);
+  logStatic(`__dirname: ${__dirname}`);
   
-  if (fs.existsSync(publicPath) && fs.existsSync(path.join(publicPath, "index.html"))) {
-    distPath = publicPath;
-    logStatic(`✓ Using public path: ${publicPath}`);
-  } else if (fs.existsSync(distRootPath) && fs.existsSync(path.join(distRootPath, "index.html"))) {
-    distPath = distRootPath;
-    logStatic(`✓ Using dist root path: ${distRootPath}`);
-  } else {
-    distPath = publicPath; // fallback
-    logStatic(`⚠ Using fallback path: ${distPath}`);
+  let foundPath: string | null = null;
+  for (const p of possiblePaths) {
+    logStatic(`Checking: ${p}`);
+    if (fs.existsSync(p) && fs.existsSync(path.join(p, "index.html"))) {
+      foundPath = p;
+      logStatic(`✓ Found index.html at: ${p}`);
+      break;
+    }
   }
   
-  if (!fs.existsSync(distPath)) {
-    const errorMsg = `✗ Static directory not found: ${distPath}`;
-    logStatic(errorMsg);
-    throw new Error(errorMsg);
+  if (!foundPath) {
+    logStatic(`✗ index.html not found in any path`);
+    for (const p of possiblePaths) {
+      logStatic(`  - ${p} exists: ${fs.existsSync(p)}`);
+    }
+    throw new Error(`Could not find index.html`);
   }
+  
+  distPath = foundPath;
 
-  // List files in dist/public for debugging
+  // List files in distPath for debugging
   const files = fs.readdirSync(distPath);
-  logStatic(`✓ Files in ${distPath}: ${files.join(", ")}`);
-  
-  // Check if index.html exists
-  const indexPath = path.join(distPath, "index.html");
-  logStatic(`✓ Index.html exists: ${fs.existsSync(indexPath)}`);
+  logStatic(`✓ Files in distPath: ${files.join(", ")}`);
 
   // Serve static files with proper caching
   app.use(
@@ -59,13 +66,13 @@ export function serveStatic(app: Express) {
 
   // Serve index.html for all non-file routes (SPA fallback)
   app.use("*", (_req: Request, res: Response) => {
-    const indexPath = path.resolve(distPath, "index.html");
+    const indexPath = path.join(distPath, "index.html");
     if (fs.existsSync(indexPath)) {
       logStatic(`✓ Serving SPA: ${_req.path}`);
       res.type("text/html").sendFile(indexPath);
     } else {
       logStatic(`✗ index.html not found: ${indexPath}`);
-      res.status(404).type("text/html").send(`<h1>404 - Not Found</h1><p>index.html not found at ${indexPath}</p>`);
+      res.status(404).type("text/html").send(`<h1>404 - Not Found</h1><p>index.html not found</p>`);
     }
   });
 }
