@@ -1,8 +1,15 @@
 .gitignore
 node_modules/
-dist/
 .env
 .env.local
 .DS_Store
 *.log
-*.md
+DEPLOYMENT_FIXES.md
+design_guidelines.md
+replit.md
+attached_assets/
+client/
+server/
+shared/
+script/
+.git/
