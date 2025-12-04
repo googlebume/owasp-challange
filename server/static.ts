@@ -13,10 +13,20 @@ function logStatic(message: string) {
 }
 
 export function serveStatic(app: Express) {
-  // In production (CommonJS bundle), __dirname is available
-  // In development (ESM), we derive it from current file location
-  // But here, we use a relative path from the dist directory
-  const distPath = path.resolve(process.cwd(), "dist", "public");
+  // On Vercel and in production, look for static files in dist/
+  // The build process puts everything in dist/public, but we also check dist root
+  let distPath: string;
+  
+  const publicPath = path.resolve(process.cwd(), "dist", "public");
+  const distRootPath = path.resolve(process.cwd(), "dist");
+  
+  if (fs.existsSync(publicPath) && fs.existsSync(path.join(publicPath, "index.html"))) {
+    distPath = publicPath;
+  } else if (fs.existsSync(distRootPath) && fs.existsSync(path.join(distRootPath, "index.html"))) {
+    distPath = distRootPath;
+  } else {
+    distPath = publicPath; // fallback
+  }
   
   logStatic(`Static files path: ${distPath}`);
   logStatic(`Current working directory: ${process.cwd()}`);
